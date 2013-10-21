@@ -89,11 +89,17 @@
             name
             type
             (send body subst what for))))
-    (define/override (eval) this)
+    (define/override (eval) 
+      (if (send this typecheck)
+          this
+          (error "type error")))
     (define/override (typecheck-in-env env)
-      (make-object arrow-type%
-        type
-        (send body typecheck-in-env (send env extend name type))))))
+      (let ([body-type (send body typecheck-in-env (send env extend name type))])
+        (if body-type
+            (make-object arrow-type%
+              type
+              body-type)
+            #f)))))
         
 
 (define stlc-local% 
