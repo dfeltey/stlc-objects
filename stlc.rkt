@@ -21,8 +21,7 @@
   (class stlc-type%
     (super-new)
     (inspect #f)
-    (init-field arg-type)
-    (init-field result-type)))
+    (init-field arg-type result-type)))
 
 (define boolean-type%
   (class stlc-type%
@@ -52,18 +51,17 @@
 (define stlc-app% 
   (class stlc-term%
     (super-new)
-    (init-field fun)
-    (init-field arg)
+    (init-field fun arg)
     (define/override (subst what for)
       (make-object stlc-app%
         (send fun subst what for)
         (send arg subst what for)))
     (define/override (eval) 
-      (if (send this typecheck)
-          (let* ([fun-eval (send fun eval)]
-                 [name (get-field name fun-eval)]
-                 [body (get-field body fun-eval)])
-            (send (send body subst arg name) eval))
+      (define fun-eval (send fun eval))
+      (if (is-a? fun-eval stlc-lambda%)
+          (let ([name (get-field name fun-eval)]
+                [body (get-field body fun-eval)])
+            (send+ body (subst arg name) (eval)))
           (error "invalid application")))
     (define/override (typecheck-in-env env)
       (let ([fun-type (send fun typecheck-in-env env)]
@@ -73,15 +71,13 @@
                          arg-type))
             (get-field result-type fun-type)
             #f)))))
-      
-      
+
+
 
 (define stlc-lambda% 
   (class stlc-term%
     (super-new)
-    (init-field name)
-    (init-field type)
-    (init-field body)
+    (init-field name type body)
     (define/override (subst what for)
       (if (symbol=? for name)
           this
@@ -94,20 +90,17 @@
           this
           (error "type error")))
     (define/override (typecheck-in-env env)
-      (let ([body-type (send body typecheck-in-env (send env extend name type))])
-        (if body-type
-            (make-object arrow-type%
-              type
-              body-type)
-            #f)))))
-        
+      (define extended-env (send env extend name type))
+      (define body-type (send body typecheck-in-env extended-env))
+      (if body-type
+          (make-object arrow-type% type body-type)
+          #f))))
+
 
 (define stlc-local% 
   (class stlc-term%
     (super-new)
-    (init-field name)
-    (init-field named-expr)
-    (init-field body)
+    (init-field name named-expr body)
     (define/override (subst what for)
       (make-object stlc-local%
         name 
@@ -115,8 +108,8 @@
         (if (symbol=? for name)
             body
             (send body subst what for))))        
-    (define/override (eval) 
-      (send (send body subst named-expr name) eval))
+    (define/override (eval)
+      (send+ body (subst named-expr name) (eval)))
     (define/override (typecheck-in-env env)
       (send body 
             typecheck-in-env 
