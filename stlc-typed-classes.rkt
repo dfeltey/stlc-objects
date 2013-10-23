@@ -119,9 +119,14 @@
             (send+ body (subst arg name) (eval)))
           (error "invalid application")))
     (define/override (typecheck-in-env env)
+      (: type-is-arrow? ((Option (Instance STLC-Type<%>)) -> Boolean))
+      (define (type-is-arrow? t)
+        (and t (is-a? t arrow-type%)))
       (let ([fun-type (send fun typecheck-in-env env)]
             [arg-type (send arg typecheck-in-env env)])
-        (if (and (is-a? fun-type arrow-type%)
+        (if (and fun-type
+                 arg-type
+                 (type-is-arrow? fun-type)
                  (equal? (get-field arg-type fun-type)
                          arg-type))
             (get-field result-type fun-type)
@@ -156,7 +161,7 @@
       (define extended-env (send env extend name type))
       (define body-type (send body typecheck-in-env extended-env))
       (if body-type
-          (make-object arrow-type% type body-type)
+          (new arrow-type% [arg-type type] [result-type body-type])
           #f))))
 
 ;(define stlc-local% 
