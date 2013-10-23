@@ -1,5 +1,21 @@
 #lang racket
+(require rackunit
+         rackunit/text-ui)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;(define is-a-type? (lambda (o) (is-a? o stlc-type%)))
+;
+;(define type-env%-contract
+;  (class/c
+;   (init-field
+;    (lu (-> symbol? (is-a?/c stlc-type%))))
+;   (lookup any/c)
+;   (extend any/c)))
+;
+;(provide (contract-out 
+;                       [type-env% type-env%-contract]))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define type-env%
   (class object%
     (super-new)
@@ -150,6 +166,10 @@
   (read (open-input-string str)))
 
 (define (parse-string str) (parse (string->sexpr str)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; TESTS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 
